@@ -1,14 +1,19 @@
 class Renderer {
-  constructor(backend) {
-    this.backend = backend;
+  constructor() {
+    this.started = false;
+  }
+
+  setDom(dom) {
+    this.dom = dom;
   }
 
   async start() {
-    return await this.backend.start();
+    this.started = true;
+    return await this.dom.start();
   }
 
   async render(html) {
-    const window = await this.backend.getWindow(),
+    const window = await this.dom.getWindow(),
       body = window.document.querySelector('body');
 
     return new Promise(async (resolve, reject) => {

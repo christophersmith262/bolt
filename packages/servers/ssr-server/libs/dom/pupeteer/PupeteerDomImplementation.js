@@ -1,10 +1,10 @@
 // original puppeteer based SSR implementation prior to porting over to JSDOM
 
-import puppeteer from 'puppeteer';
+const { pupeteer} = 'puppeteer';
 
-const { RenderBackend } = require('../../RenderBackend');
+const { DomImplementation } = require('../DomImplementation');
 
-class PupeteerRenderBackend extends RenderBackend {
+class PupeteerDomImplementation extends DomImplementation {
   constructor(port) {
     super();
     this.port = port;
@@ -47,5 +47,5 @@ class PupeteerRenderBackend extends RenderBackend {
 }
 
 module.exports = {
-  PupeteerRenderBackend,
+  PupeteerDomImplementation,
 };

@@ -3,9 +3,9 @@ const jsdom = require('jsdom');
 const path = require('path');
 
 class FilesystemResourceLoader extends jsdom.ResourceLoader {
-  constructor(config) {
+  constructor(basePath) {
     super();
-    this.basePath = path.relative(process.cwd(), config.wwwDir);
+    this.basePath = basePath || '';
   }
 
   fetch(url, options) {

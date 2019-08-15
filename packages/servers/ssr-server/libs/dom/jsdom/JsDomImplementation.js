@@ -4,17 +4,14 @@ const resolve = require('resolve');
 const requestAnimationFrame = require('raf');
 const { JSDOM } = jsdom;
 const { template } = require('./template');
-const { RenderBackend } = require('../../RenderBackend');
+const { DomImplementation } = require('../DomImplementation');
 const { FilesystemResourceLoader } = require('./FilesystemResourceLoader');
 
-class JsDomRenderBackend extends RenderBackend {
-  constructor(config, assets, resourceLoader) {
+class JsDomImplementation extends DomImplementation {
+  constructor(resourceLoader) {
     super();
-    this.config = config;
-    this.assets = assets;
     this.dom = null;
-    this.resourceLoader =
-      resourceLoader || new FilesystemResourceLoader(config);
+    this.resourceLoader = resourceLoader || new FilesystemResourceLoader();
   }
 
   async start() {
@@ -34,7 +31,7 @@ class JsDomRenderBackend extends RenderBackend {
       { encoding: 'utf-8' },
     );
 
-    let dom = new JSDOM(`${template(this.assets)}`, {
+    let dom = new JSDOM(`${template(await this.getAssets())}`, {
       runScripts: 'dangerously',
       resources: this.resourceLoader,
       beforeParse(window) {
@@ -55,5 +52,5 @@ class JsDomRenderBackend extends RenderBackend {
 }
 
 module.exports = {
-  JsDomRenderBackend,
+  JsDomImplementation,
 };
