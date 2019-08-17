@@ -18,7 +18,6 @@ const ssr = require('@bolt/ssr-server'),
   bolt = require('./platforms/bolt');
 
 module.exports = {
-  cluster: true,
   server: ssr.transport.http({
     port: 8080,
   }),
