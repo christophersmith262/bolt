@@ -31,12 +31,14 @@ async function compile(version) {
       await webpackCompiler.compile();
     });
 
-    app.events.on('*:startup', async () => {
-      const assets = await webpackCompiler.getAssets();
-      handler.dom.setAssets(Object.values(assets).map(value => {
-        return value;
-      }));
-    });
+    if (handler.renderer.dom) {
+      app.events.on('*:startup', async () => {
+        const assets = await webpackCompiler.getAssets();
+        handler.renderer.dom.setAssets(Object.values(assets).map(value => {
+          return value;
+        }));
+      });
+    }
   };
 }
 

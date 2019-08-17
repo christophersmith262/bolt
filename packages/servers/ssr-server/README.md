@@ -18,14 +18,18 @@ const ssr = require('@bolt/ssr-server'),
   bolt = require('./platforms/bolt');
 
 module.exports = {
+  cluster: true,
   server: ssr.transport.http({
     port: 8080,
   }),
   handlers: {
     'default': {
       plugins: [bolt.compile()],
-      dom: ssr.dom.jsdom(bolt.webpackLoader()),
-      renderer: ssr.renderer.webcomponent(bolt.ssrComponents()),
+      balancer: ssr.environment.balancer.random(),
+      renderer: ssr.renderer.webcomponent({
+        dom: ssr.dom.jsdom(bolt.webpackLoader()),
+        components: bolt.ssrComponents(),
+      })
     }
   }
 }

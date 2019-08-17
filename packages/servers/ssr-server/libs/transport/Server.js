@@ -1,10 +1,6 @@
 class Server {
 
-  setWorkers(workers) {
-    this.workers = workers;
-  }
-
-  async start() {
+  async start(handlers, executor) {
   }
 
   async stop() {

@@ -50,11 +50,11 @@ class HttpServer extends Server {
     this._server = this.http.createServer(this.options);
   }
 
-  async startEventLoop() {
+  async startEventLoop(handlers, executor) {
     this._server.on('request', async (req, res) => {
-      const workers = await this._resolveWorkers(req.url);
+      const handler = await this._getHandler(handlers, req.url);
 
-      if (!workers) {
+      if (!handler) {
         res.writeHead(404);
         res.end();
       }
@@ -63,7 +63,6 @@ class HttpServer extends Server {
         res.end();
       }
       else {
-
         const chunks = [];
         req.on('data', chunk => {
           chunks.push(chunk);
@@ -71,7 +70,7 @@ class HttpServer extends Server {
 
         req.on('end', async () => {
           try {
-            const rendered = await workers.render(chunks.join());
+            const rendered = await executor.render(handler, chunks.join());
             res.writeHead(200, { 'content-type': 'text/html' });
             res.end(rendered + "\n");
           } catch (e) {
@@ -90,8 +89,8 @@ class HttpServer extends Server {
     });
   }
 
-  async start() {
-    this.startEventLoop();
+  async start(handlers, executor) {
+    this.startEventLoop(handlers, executor);
     this._server.listen(this.port);
   }
 
@@ -106,22 +105,15 @@ curl ${this.protocol}://localhost${port} -v${this.curlOpts} -X POST -d "<bolt-bu
     `;
   }
 
-  async _resolveWorkers(requestPath) {
-    let workers = null;
-
+  async _getHandler(handlers, requestPath) {
     if (requestPath == '/') {
-      workers = this.workers['default'];
+      return handlers['default'];
     }
     else {
-      for (var name in this.handlers) {
-        if (requestPath == `/${name}`) {
-          workers = this.workers[name];
-          break;
-        }
+      for (var name in handlers) {
+        return handlers[name];
       }
     }
-
-    return workers;
   }
 
 }
@@ -129,4 +121,3 @@ curl ${this.protocol}://localhost${port} -v${this.curlOpts} -X POST -d "<bolt-bu
 module.exports = {
   HttpServer,
 };
-

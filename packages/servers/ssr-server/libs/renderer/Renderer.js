@@ -3,13 +3,8 @@ class Renderer {
     this.started = false;
   }
 
-  setDom(dom) {
-    this.dom = dom;
-  }
-
   async start() {
     this.started = true;
-    return await this.dom.start();
   }
 
   async render(html) {

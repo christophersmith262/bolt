@@ -53,15 +53,7 @@ async function loadConfig(overrides) {
 
     handler.id = i;
 
-    if (!handler.dom) {
-      console.log('');
-      console.log(chalk.red(`No dom implementation specified for request handler "${i}".`));
-      console.log('');
-      console.log(chalk.yellow('Update the request handler to include a DomImplementation in the "dom" key.'));
-      console.log('');
-      errors++;
-    }
-    else if (!handler.renderer) {
+    if (!handler.renderer) {
       console.log('');
       console.log(chalk.red(`No renderer service specified for request handler "${i}".`));
       console.log('');

@@ -2,7 +2,7 @@ const { Listener } = require('./Listener');
 const messages = require('../ipc/messages');
 const server = require('../server');
 
-class ServerStateListener extends Listener {
+class MasterStateListener extends Listener {
   constructor(config) {
     super(config);
     this._readyToSpawn = [];
@@ -42,5 +42,5 @@ class ServerStateListener extends Listener {
 }
 
 module.exports = {
-  ServerStateListener,
+  MasterStateListener,
 };

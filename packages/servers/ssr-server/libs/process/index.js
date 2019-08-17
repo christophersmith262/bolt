@@ -5,9 +5,10 @@ const ipc = require('node-ipc');
 const { ProcessMessageLoop, IpcMessageAdapter } = require('./ipc/messages');
 const { Process } = require('./Process');
 const messages = require('./ipc/messages');
-const environment = require('./environment');
+const environment = require('../environment');
 const server = require('./server');
-const { ServerStateListener } = require('./state/ServerStateListener');
+const { MasterStateListener } = require('./state/MasterStateListener');
+const { WorkerStateListener } = require('./state/WorkerStateListener');
 
 async function startSandbox(config, sandboxId, serverIds, handler) {
   const app = new Process(config, 'sandbox'),
@@ -49,7 +50,7 @@ async function startClusterMaster(config) {
     servers[1] = new ProcessMessageLoop(1);
   }
 
-  const listener = new ServerStateListener(config);
+  const listener = new MasterStateListener(config);
   for (let i in servers) {
     listener.listenTo(servers[i]);
   }
@@ -103,23 +104,9 @@ async function startClusterWorker(config) {
 
   await app.startup();
 
-  const messageHandler = async message => {
-    if (message.type == messages.types['SERVER_START']) {
-      await server.start(config, [messageLoop, process], cluster.worker.id);
-    }
-    else if (message.type == messages.types['SERVER_AWAITING_ENVIRONMENTS']) {
-      for (let i in config.handlers) {
-        const handler = config.handlers[i];
-
-        if (!handler.sandboxes) {
-          environment.create(config, handler, [new IpcMessageAdapter(messageLoop)]);
-        }
-      }
-    }
-  };
-
-  messageLoop.on('message', messageHandler);
-  process.on('message', messageHandler);
+  const listener = new WorkerStateListener(config, [messageLoop, process]);
+  listener.listenTo(messageLoop);
+  listener.listenTo(process);
 
   process.send({
     type: messages.types['SERVER_PROCESS_READY'],

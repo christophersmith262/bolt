@@ -8,11 +8,11 @@ class Http2Server extends HttpServer {
     this.curlOpts += ' --http2-prior-knowledge';
   }
 
-  async startEventLoop() {
+  async startEventLoop(handlers, executor) {
     this._server.on('stream', async (stream, headers) => {
-      const workers = await this._resolveWorkers(headers[':path']);
+      const handler = await this._getHandler(handlers, headers[':path']);
 
-      if (!workers) {
+      if (!handler) {
         stream.respond({ ':status': 404 });
         stream.end();
       } else if (headers[':method'].toLowerCase() !== 'post') {
@@ -25,7 +25,7 @@ class Http2Server extends HttpServer {
         });
         stream.on('end', async () => {
           try {
-            const rendered = await workers.render(chunks.join());
+            const rendered = await executor.render(handler, chunks.join());
 
             stream.respond({
               ':status': 200,

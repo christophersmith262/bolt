@@ -1,6 +1,7 @@
 class Listener {
-  constructor(config) {
-    this.config = config;
+  constructor(config, listeners) {
+    this.config = config || {};
+    this.listeners = listeners || [];
   }
 
   async listenTo(subject) {

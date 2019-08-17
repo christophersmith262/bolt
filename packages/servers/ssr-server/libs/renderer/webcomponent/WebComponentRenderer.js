@@ -5,13 +5,14 @@ const { SimpleTagParser } = require('./SimpleTagParser');
 const { SimpleTagSerializer } = require('./SimpleTagSerializer');
 
 class WebComponentRenderer extends Renderer {
-  constructor(components) {
+  constructor(config) {
     super();
-    this.components = components;
+    this.dom = config.dom;
+    this.config = config;
   }
 
   async render(html) {
-    const lexer = new SimpleTagLexer(html, this.components),
+    const lexer = new SimpleTagLexer(html, this.config.components),
       parser = new SimpleTagParser(lexer),
       serializer = new SimpleTagSerializer(),
       tags = await parser.filterTags(),
@@ -46,13 +47,15 @@ class WebComponentRenderer extends Renderer {
   }
 
   async start() {
-    await Renderer.prototype.start.call(this);
+    await this.dom.start();
 
     const window = await this.dom.getWindow();
-    const promises = this.components.map(name =>
+    const promises = this.config.components.map(name =>
       window.customElements.whenDefined(name)
     );
     await Promise.all(promises);
+
+    await Renderer.prototype.start.call(this);
   }
 }
 

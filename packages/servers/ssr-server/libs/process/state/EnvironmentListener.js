@@ -1,37 +1,34 @@
 const { Listener } = require('./Listener');
-const { SocketWorkerPool } = require('../../SocketWorkerPool');
+const { EnvironmentConnectionPool } = require('../../environment/EnvironmentConnectionPool');
+const { EnvironmentConnection } = require('../../environment/EnvironmentConnection');
 const messages = require('../ipc/messages');
 
 class EnvironmentListener extends Listener {
-  constructor(config) {
+  constructor(config, requests) {
     super(config);
-    this.workers = {};
+    this.environments = new EnvironmentConnectionPool();
+    this.requests = requests;
     this.promise = new Promise(ready => {
       this._ready = ready;
     });
   }
 
   async listenTo(subject) {
-    const workers = this.workers;
+    const environments = this.environments;
 
     subject.on('message', (message, socket) => {
       if (message.type == messages.types['ENVIRONMENT_READY']) {
-        if (!(message.handler in workers)) {
-          workers[message.handler] = new SocketWorkerPool(subject);
-          workers[message.handler].start();
-          this.config.handlers[message.handler].workers = workers[message.handler];
-        }
-        workers[message.handler].addChannel(socket);
+        this.environments.addConnection(message.handler, new EnvironmentConnection(subject, socket, this.requests));
 
         // Ready once there is at least one worker for each handler.
-        if (workers.length == this.config.handlers.length) {
-          this._ready(workers);
+        if (environments.length == this.config.handlers.length) {
+          this._ready(environments);
         }
       }
     });
   }
 
-  async getWorkers() {
+  async getEnvironments() {
     return await this.promise;
   }
 }

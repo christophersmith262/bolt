@@ -1,9 +1,9 @@
-const { RenderRequestListener } = require('./state/RenderRequestListener');
-const messages = require('./ipc/messages');
+const { RenderRequestListener } = require('../process/state/RenderRequestListener');
+const { EnvironmentConnection } = require('./EnvironmentConnection');
+const { EnvironmentConnectionPool } = require('./EnvironmentConnectionPool');
+const messages = require('../process/ipc/messages');
 
 async function create(config, handler, ipcNotify) {
-  handler.renderer.setDom(handler.dom);
-
   await Promise.race([
     handler.renderer.start(),
     new Promise(async (accept, reject) => {
@@ -16,9 +16,9 @@ async function create(config, handler, ipcNotify) {
     process.exit();
   });
 
+  const renderListener = new RenderRequestListener(config, handler);
   for (let i in ipcNotify) {
-    const server = ipcNotify[i],
-      renderListener = new RenderRequestListener(config, handler);
+    const server = ipcNotify[i];
 
     renderListener.listenTo(server);
 
@@ -31,4 +31,7 @@ async function create(config, handler, ipcNotify) {
 
 module.exports = {
   create,
+  EnvironmentConnection,
+  EnvironmentConnectionPool,
+  balancer: require('./balancer'),
 };
