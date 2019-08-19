@@ -21,20 +21,27 @@ module.exports = {
   server: ssr.transport.http({
     port: 8080,
   }),
-  handlers: {
+
+  // Run the bolt webpack build on startup.
+  plugins: [bolt.compile()],
+
+  routes: {
     'default': {
-      balancer: ssr.environment.balancer.random(),
-      plugins: [bolt.compile()],
-      processors: {
+      handlers: {
+
+        // Create a handler that accepts an html string,
+        // renders the webcomponent tags, then returns. 
         'text/html': {
-          format: ssr.format.rawmarkup(),
+          format: ssr.format.html(),
           filters: [
-            ssr.filters.rendertags({
-              components: bolt.ssrComponents(),
-            }),
+            ssr.filter.rendertags({
+              tags: bolt.ssrComponents(),
+            })
           ],
         }),
       },
+
+      // Use a dom renderer that supports bolt web components.
       renderer: ssr.renderer.dom({
         dom: ssr.dom.jsdom(),
         components: bolt.ssrComponents(),

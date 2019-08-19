@@ -61,6 +61,10 @@ async function loadConfig(overrides) {
       console.log('');
       errors++;
     }
+
+    if (!handler.balancer) {
+      handler.balancer = require('./balancer').random();
+    }
   }
 
   if (!('default' in config.handlers)) {
