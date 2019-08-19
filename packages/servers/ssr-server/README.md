@@ -23,10 +23,20 @@ module.exports = {
   }),
   handlers: {
     'default': {
-      plugins: [bolt.compile()],
       balancer: ssr.environment.balancer.random(),
-      renderer: ssr.renderer.webcomponent({
-        dom: ssr.dom.jsdom(bolt.webpackLoader()),
+      plugins: [bolt.compile()],
+      processors: {
+        'text/html': {
+          format: ssr.format.rawmarkup(),
+          filters: [
+            ssr.filters.rendertags({
+              components: bolt.ssrComponents(),
+            }),
+          ],
+        }),
+      },
+      renderer: ssr.renderer.dom({
+        dom: ssr.dom.jsdom(),
         components: bolt.ssrComponents(),
       })
     }

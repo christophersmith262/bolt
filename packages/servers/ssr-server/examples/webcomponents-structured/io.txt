@@ -1,0 +1,17 @@
+{
+  "job1": {
+    "template": "bolt-button",
+    "text": "hello world!"
+  },
+  "job2": {
+    "template": "bolt-icon",
+    "name": "close",
+  }
+}
+
+->
+
+{
+  "job1": "<bolt-button>hello world!</bolt-button>",
+  "job2": "<bolt-icon name="close"></bolt-icon"
+}

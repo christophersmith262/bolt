@@ -70,7 +70,7 @@ class HttpServer extends Server {
 
         req.on('end', async () => {
           try {
-            const rendered = await executor.render(handler, chunks.join());
+            const rendered = await executor.render(type, handler, chunks.join());
             res.writeHead(200, { 'content-type': 'text/html' });
             res.end(rendered + "\n");
           } catch (e) {
