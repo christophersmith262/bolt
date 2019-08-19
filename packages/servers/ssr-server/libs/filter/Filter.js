@@ -1,5 +1,5 @@
 class Filter {
-  async apply(environment, handler, input) {
+  async apply(environment, route, type, input) {
   }
 }
 

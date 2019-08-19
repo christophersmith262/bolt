@@ -50,11 +50,11 @@ class HttpServer extends Server {
     this._server = this.http.createServer(this.options);
   }
 
-  async startEventLoop(handlers, executor) {
+  async startEventLoop(routes, executor) {
     this._server.on('request', async (req, res) => {
-      const handler = await this._getHandler(handlers, req.url);
+      const route = await this._getRoute(routes, req.url);
 
-      if (!handler) {
+      if (!route) {
         res.writeHead(404);
         res.end();
       }
@@ -69,8 +69,10 @@ class HttpServer extends Server {
         });
 
         req.on('end', async () => {
+          const type = req.headers['content-type'];
+
           try {
-            const rendered = await executor.render(type, handler, chunks.join());
+            const rendered = await executor.execute(route, type, chunks.join());
             res.writeHead(200, { 'content-type': 'text/html' });
             res.end(rendered + "\n");
           } catch (e) {
@@ -89,8 +91,8 @@ class HttpServer extends Server {
     });
   }
 
-  async start(handlers, executor) {
-    this.startEventLoop(handlers, executor);
+  async start(routes, executor) {
+    this.startEventLoop(routes, executor);
     this._server.listen(this.port);
   }
 
@@ -105,13 +107,13 @@ curl ${this.protocol}://localhost${port} -v${this.curlOpts} -X POST -d "<bolt-bu
     `;
   }
 
-  async _getHandler(handlers, requestPath) {
+  async _getRoute(routes, requestPath) {
     if (requestPath == '/') {
-      return handlers['default'];
+      return routes['default'];
     }
     else {
-      for (var name in handlers) {
-        return handlers[name];
+      for (var name in routes) {
+        return routes[name];
       }
     }
   }

@@ -36,9 +36,9 @@ async function start(config, processNotify, id) {
     });
   }
 
-  const executor  = new RenderRequestExecutor(await environmentListener.getEnvironments());
+  const executor  = new RenderRequestExecutor(config.environments, await environmentListener.getConnections());
 
-  await config.server.start(config.handlers, executor);
+  await config.server.start(config.routes, executor);
 
   for (let i in processNotify) {
     processNotify[i].send({

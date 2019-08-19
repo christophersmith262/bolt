@@ -5,15 +5,15 @@ class EnvironmentConnectionPool {
     this.environments = {};
   }
 
-  async addConnection(handlerId, connection) {
-    if (!(handlerId in this.environments)) {
-      this.environments[handlerId] = [];
+  async addConnection(environmentId, connection) {
+    if (!(environmentId in this.environments)) {
+      this.environments[environmentId] = [];
     }
-    this.environments[handlerId].push(connection);
+    this.environments[environmentId].push(connection);
   }
 
-  async getConnections(handlerId) {
-    return this.environments[handlerId];
+  async getConnections(environmentId) {
+    return this.environments[environmentId];
   }
 }
 

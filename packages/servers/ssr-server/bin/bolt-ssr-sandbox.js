@@ -8,8 +8,8 @@ const { SandboxProcess, startSandbox } = require('../libs/process');
 
 program
   .option(
-    '--handler-id <[0-9]+>',
-    'the handler that this sandbox serves.',
+    '--environment-id <[0-9]+>',
+    'the environment that this sandbox serves.',
   )
   .option(
     '--sandbox-id <[0-9]+>',
@@ -23,8 +23,8 @@ program
 
 loadConfig(program).then(async config => {
   const serverIds = program.serverIds.split(',')
-    handlerId = program.handlerId,
-    handler = config.handlers[handlerId];
+    environmentId = program.environmentId,
+    environmentDef = config.environments[environmentId];
 
-  await startSandbox(config, program.sandboxId, serverIds, handler);
+  await startSandbox(config, program.sandboxId, serverIds, environmentDef);
 });

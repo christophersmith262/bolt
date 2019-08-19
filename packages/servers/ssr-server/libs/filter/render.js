@@ -1,7 +1,7 @@
 const { Filter } = require('./Filter');
 
 class RenderFilter {
-  async apply(environment, handler, input) {
+  async apply(environment, route, type, input) {
     return await environment.render(input);
   }
 }

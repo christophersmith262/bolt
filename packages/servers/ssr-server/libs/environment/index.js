@@ -3,9 +3,9 @@ const { EnvironmentConnection } = require('./EnvironmentConnection');
 const { EnvironmentConnectionPool } = require('./EnvironmentConnectionPool');
 const messages = require('../process/ipc/messages');
 
-async function create(config, handler, ipcNotify) {
+async function create(config, environment, ipcNotify) {
   await Promise.race([
-    handler.renderer.start(),
+    environment.renderer.start(),
     new Promise(async (accept, reject) => {
       setTimeout(() => {
         reject();
@@ -16,7 +16,7 @@ async function create(config, handler, ipcNotify) {
     process.exit();
   });
 
-  const renderListener = new RenderRequestListener(config, handler);
+  const renderListener = new RenderRequestListener(config, environment);
   for (let i in ipcNotify) {
     const server = ipcNotify[i];
 
@@ -24,7 +24,7 @@ async function create(config, handler, ipcNotify) {
 
     server.emit('message', {
       type: messages.types['ENVIRONMENT_READY'],
-      handler: handler.id,
+      environment: environment.id,
     });
   }
 }

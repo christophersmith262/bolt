@@ -11,17 +11,11 @@ class PluginEvents {
     this.registry[name].push(cb);
   }
 
-  async emit(name) {
-    const evtArgs = [];
-
-    for (let i = 1; i < arguments.length; i++) {
-      evtArgs.push(arguments[i]);
-    }
-
+  async emit(name, args) {
     const promises = [];
     for (let i in this.registry[name]) {
       const cb = this.registry[name][i];
-      promises.push(Promise.resolve(cb.apply(null, evtArgs)));
+      promises.push(Promise.resolve(cb.apply(null, args)));
     }
 
     return await Promise.all(promises);

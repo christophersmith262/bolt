@@ -1,6 +1,6 @@
 class Server {
 
-  async start(handlers, executor) {
+  async start(routes, executor) {
   }
 
   async stop() {

@@ -12,7 +12,7 @@ class PrettierFilter extends Filter {
     };
   }
 
-  async apply(environment, handler, input) {
+  async apply(environment, route, type, input) {
     return prettier.format(html, this.config);
   }
 }

@@ -24,21 +24,21 @@ async function compile(version) {
   config.dataDir = path.join(config.wwwDir, 'build-ssr', 'data');
   config.version = version;
 
-  return (app, handler) => {
+  return (app) => {
     const webpackCompiler = new BoltWebpackCompiler(config);
 
     app.events.on('master:startup', async () => {
       await webpackCompiler.compile();
     });
 
-    if (handler.renderer.dom) {
-      app.events.on('*:startup', async () => {
+    app.events.on('*:environment:parse', async environment => {
+      if (environment.renderer.dom) {
         const assets = await webpackCompiler.getAssets();
-        handler.renderer.dom.setAssets(Object.values(assets).map(value => {
+        environment.renderer.dom.setAssets(Object.values(assets).map(value => {
           return value;
         }));
-      });
-    }
+      }
+    });
   };
 }
 

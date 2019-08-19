@@ -1,18 +1,16 @@
-const Tokenizer = require('parse5/lib/tokenizer');
-const { Renderer } = require('../Renderer');
+const { Filter } = require('../Filter');
 const { SimpleTagLexer } = require('./SimpleTagLexer');
 const { SimpleTagParser } = require('./SimpleTagParser');
 const { SimpleTagSerializer } = require('./SimpleTagSerializer');
 
-class WebComponentRenderer extends Renderer {
+class RenderTagsFilter extends Filter {
   constructor(config) {
     super();
-    this.dom = config.dom;
     this.config = config;
   }
 
-  async render(html) {
-    const lexer = new SimpleTagLexer(html, this.config.components),
+  async apply(environment, route, type, input) {
+    const lexer = new SimpleTagLexer(input, this.config.tags),
       parser = new SimpleTagParser(lexer),
       serializer = new SimpleTagSerializer(),
       tags = await parser.filterTags(),
@@ -27,7 +25,8 @@ class WebComponentRenderer extends Renderer {
       }];
 
       promises.push(serializer.serialize(tag).then(async rendered => {
-        rendered = await Renderer.prototype.render.call(this, await serializer.serialize(tag));
+        rendered = await environment.render(await serializer.serialize(tag));
+
         tag.type = 'text';
 
         tag.text = rendered.replace('!placeholder', await serializer.serialize({
@@ -45,20 +44,8 @@ class WebComponentRenderer extends Renderer {
 
     return await serializer.serialize(await parser.getAST());
   }
-
-  async start() {
-    await this.dom.start();
-
-    const window = await this.dom.getWindow();
-    const promises = this.config.components.map(name =>
-      window.customElements.whenDefined(name)
-    );
-    await Promise.all(promises);
-
-    await Renderer.prototype.start.call(this);
-  }
 }
 
 module.exports = {
-  WebComponentRenderer,
+  RenderTagsFilter,
 };

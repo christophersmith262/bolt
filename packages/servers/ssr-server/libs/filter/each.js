@@ -11,7 +11,7 @@ class EachFilter extends Filter {
     this.filters = filters;
   }
 
-  async apply(environment, handler, input) {
+  async apply(environment, route, type, input) {
     if (typeof input !== 'object') {
       throw new Error('each() applied to a non object / array!');
     }
@@ -20,7 +20,7 @@ class EachFilter extends Filter {
     for (let i in input) {
       promises.push(new Promise(async accept => {
         for (let j in this.filters) {
-          input[i] = await this.filters[j].apply(environment, handler, input[i]));
+          input[i] = await this.filters[j].apply(environment, route, input[i]);
         }
         accept();
       }));

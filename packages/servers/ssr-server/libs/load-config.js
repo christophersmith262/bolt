@@ -31,50 +31,99 @@ async function loadConfig(overrides) {
     config.cluster = cpuCount;
   }
 
-  if (!config.handlers) {
-    config.handlers = {};
+  if (!config.routes) {
+    config.routes = {};
   }
 
-  for (let i in config.handlers) {
-    const handler = config.handlers[i];
+  for (let i in config.environments) {
+    const environmentDef = config.environments[i];
 
-    if (!handler.sandboxes) {
-      handler.sandboxes = 0;
+    environmentDef.id = i;
+
+    if (!environmentDef.sandboxes) {
+      environmentDef.sandboxes = 0;
     }
-    else if (handler.sandboxes === true) {
-      handler.sandboxes = cpuCount;
-    }
-
-    handler.plugins = handler.plugins || []
-
-    for(let j in handler.plugins) {
-      handler.plugins[j] = Promise.resolve(handler.plugins[j]);
+    else if (environmentDef.sandboxes === true) {
+      environmentDef.sandboxes = cpuCount;
     }
 
-    handler.id = i;
-
-    if (!handler.renderer) {
+    if (!environmentDef.renderer) {
       console.log('');
-      console.log(chalk.red(`No renderer service specified for request handler "${i}".`));
+      console.log(chalk.red(`No renderer service specified for environment "${i}".`));
       console.log('');
-      console.log(chalk.yellow('Update the request handler to include a Renderer in the "renderer" key.'));
+      console.log(chalk.yellow('Update the request route to include a Renderer in the "renderer" key.'));
       console.log('');
       errors++;
     }
 
-    if (!handler.balancer) {
-      handler.balancer = require('./balancer').random();
+    if (!environmentDef.balancer) {
+      environmentDef.balancer = require('./environment/balancer').random();
     }
   }
 
-  if (!('default' in config.handlers)) {
+  for (let i in config.routes) {
+    if (!Array.isArray(config.routes[i])) {
+      config.routes[i] = [config.routes[i]];
+    }
+
+    const route = {
+      id: i,
+      handlers: config.routes[i],
+    };
+
+    for (let j in route.handlers) {
+      const handler = route.handlers[j];
+
+      handler.types = handler.types || [];
+      handler.types = new Set(handler.types);
+
+      if (!handler.format) {
+        console.log('');
+        console.log(chalk.red(`No format provided in route handler "${i}[${j}]".`));
+        console.log('');
+        console.log(chalk.yellow('Update the route to include a format in the "format" key.'));
+        console.log('');
+        errors++;
+      }
+
+      if (!handler.filters) {
+        console.log('');
+        console.log(chalk.red(`No filter chain provided in route handler "${i}[${j}]".`));
+        console.log('');
+        console.log(chalk.yellow('Update the route to include a filter chain in the "filters" key.'));
+        console.log('');
+        errors++;
+      }
+
+      if (!handler.environment) {
+        console.log('');
+        console.log(chalk.red(`No render environment specified for request handler "${i}[${j}]".`));
+        console.log('');
+        console.log(chalk.yellow('Update the request handler to include a render environment in the "environment" key.'));
+        console.log('');
+        errors++;
+      }
+      else if (!(handler.environment in config.environments)) {
+        console.log('');
+        console.log(chalk.red(`Invalid render environment specified for request handler "${i}[${j}]": "${handler.environment}".`));
+        console.log('');
+        console.log(chalk.yellow('Update the request handler to include a valid render environment in the "environment" key.'));
+        console.log('');
+        errors++;
+      }
+    }
+
+    config.routes[i] = route;
+  }
+
+  if (!('default' in config.routes)) {
     console.log('');
-    console.log(chalk.red('No default request handler provided.'));
+    console.log(chalk.red('No default request route provided.'));
     console.log('');
     console.log(chalk.yellow('Your config file should have an entry that looks like:'));
     console.log('');
     console.log(chalk.dim('  module.exports = {'));
-    console.log(chalk.dim('    handlers: {'));
+    console.log(chalk.dim('    routes: {'));
     console.log(chalk.dim('      "default": {'));
     console.log(chalk.dim('        ...'));
     console.log(chalk.dim('      }'));

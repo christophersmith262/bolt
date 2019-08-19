@@ -18,17 +18,17 @@ class EnvironmentListener extends Listener {
 
     subject.on('message', (message, socket) => {
       if (message.type == messages.types['ENVIRONMENT_READY']) {
-        this.environments.addConnection(message.handler, new EnvironmentConnection(subject, socket, this.requests));
+        this.environments.addConnection(message.environment, new EnvironmentConnection(subject, socket, this.requests));
 
-        // Ready once there is at least one worker for each handler.
-        if (environments.length == this.config.handlers.length) {
+        // Ready once there is at least one worker for each environment.
+        if (environments.length == this.config.environments.length) {
           this._ready(environments);
         }
       }
     });
   }
 
-  async getEnvironments() {
+  async getConnections() {
     return await this.promise;
   }
 }

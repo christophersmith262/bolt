@@ -10,7 +10,7 @@ const server = require('./server');
 const { MasterStateListener } = require('./state/MasterStateListener');
 const { WorkerStateListener } = require('./state/WorkerStateListener');
 
-async function startSandbox(config, sandboxId, serverIds, handler) {
+async function startSandbox(config, sandboxId, serverIds, environmentDef) {
   const app = new Process(config, 'sandbox'),
     channels = [];
   await app.startup();
@@ -29,7 +29,7 @@ async function startSandbox(config, sandboxId, serverIds, handler) {
     });
   }
 
-  await environment.create(config, handler, channels);
+  await environment.create(config, environmentDef, channels);
 }
 
 async function startClusterMaster(config) {
@@ -72,13 +72,13 @@ async function startClusterMaster(config) {
     processArgs.push(process.argv[i]);
   }
 
-  for (let i in config.handlers) {
-    const handler = config.handlers[i];
-    if (handler.sandboxes) {
-      for (let j = 0; j < handler.sandboxes; j++) {
+  for (let i in config.environments) {
+    const environmentDef = config.environments[i];
+    if (environmentDef.sandboxes) {
+      for (let j = 0; j < environmentDef.sandboxes; j++) {
         const serverIds = Object.keys(servers).join(','),
           args = [
-            `--handler-id=${i}`,
+            `--environment-id=${i}`,
             `--sandbox-id=sandbox:${i}:${j}`,
             `--server-ids=${serverIds}`,
           ];
@@ -91,7 +91,7 @@ async function startClusterMaster(config) {
       }
     }
     else if (!config.cluster) {
-      environment.create(config, handler, [new IpcMessageAdapter(servers[1])]);
+      environment.create(config, environmentDef, [new IpcMessageAdapter(servers[1])]);
     }
   }
 

@@ -12,11 +12,11 @@ class WorkerStateListener extends Listener {
         await server.start(this.config, this.listeners, cluster.worker.id);
       }
       else if (message.type == messages.types['SERVER_AWAITING_ENVIRONMENTS']) {
-        for (let i in this.config.handlers) {
-          const handler = this.config.handlers[i];
+        for (let i in this.config.environments) {
+          const environmentDef = this.config.environments[i];
 
-          if (!handler.sandboxes) {
-            environment.create(this.config, handler, [new IpcMessageAdapter(subject)]);
+          if (!environmentDef.sandboxes) {
+            environment.create(this.config, environmentDef, [new IpcMessageAdapter(subject)]);
           }
         }
       }

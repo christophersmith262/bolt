@@ -1,23 +1,3 @@
-<h1>
-  <img align="left" width="40" src="https://raw.githubusercontent.com/bolt-design-system/bolt/master/docs-site/src/assets/images/bolt-logo.png">
-  Bolt Design System
-</h1>
-
-## Quickstart Guide
-
-This will create a basic rendering service for the latest version of bolt.
-Clients can POST html to the server on port `8080` and will receive server side
-rendered markup as a result.
-
-First install the render server:
-
-```
-yarn add @bolt/ssr-server
-```
-
-Then create a `.boltssrc.js` file:
-
-```js
 const ssr = require('@bolt/ssr-server'),
   bolt = require('./platforms/bolt');
 
@@ -32,6 +12,7 @@ module.exports = {
         dom: ssr.dom.jsdom(bolt.webpackLoader()),
         components: bolt.ssrComponents(),
       }),
+      sandboxes: true,
     },
   },
   routes: {
@@ -46,10 +27,3 @@ module.exports = {
     },
   }
 }
-```
-
-Then start the server:
-
-```
-yarn bolt-ssr-server
-```
