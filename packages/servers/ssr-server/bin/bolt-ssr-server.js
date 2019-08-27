@@ -3,16 +3,16 @@
 const cluster = require('cluster');
 const program = require('../libs/process/program');
 const { loadConfig } = require('../libs/load-config');
-const { startClusterMaster, startClusterWorker } = require('../libs/process');
+const processManager = require('../libs/process');
 
 program.parse(process.argv);
 
 loadConfig(program).then(async config => {
   if (cluster.isMaster) {
-    await startClusterMaster(config);
+    await processManager.master.start(config);
     console.log(await config.server.description());
   }
   else {
-    await startClusterWorker(config);
+    await processManager.worker.start(config);
   }
 });

@@ -8,33 +8,37 @@ class DomRenderer extends Renderer {
   }
 
   async render(html) {
-    const window = await this.dom.getWindow(),
-      body = window.document.querySelector('body');
-
-    return new Promise(async (resolve, reject) => {
-      const div = window.document.createElement('div');
+    const result = await new Promise(async (resolve, reject) => {
+      const div = this.window.document.createElement('div');
       div.innerHTML = html;
 
       const scripts = div.getElementsByTagName('script');
       let i = scripts.length;
       while (i--) {
         scripts[i].parentNode.removeChild(scripts[i]);
+        delete scripts[i];
       }
 
-      body.appendChild(div);
+      this.body.appendChild(div);
 
       return setTimeout(() => {
-        resolve(div.innerHTML.replace(/<!---->/g, ''));
+        const result = div.innerHTML.replace(/<!---->/g, '');
+        this.body.removeChild(div);
+        resolve(result);
       }, 0);
     });
+
+    return result;
   }
 
   async start() {
     await this.dom.start();
 
-    const window = await this.dom.getWindow();
+    this.window = await this.dom.getWindow();
+    this.body = this.window.document.querySelector('body');
+
     const promises = this.config.components.map(name =>
-      window.customElements.whenDefined(name)
+      this.window.customElements.whenDefined(name)
     );
     await Promise.all(promises);
 

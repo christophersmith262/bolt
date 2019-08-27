@@ -1,5 +1,3 @@
-const messages = require('../process/ipc/messages');
-
 class EnvironmentConnectionPool {
   constructor() {
     this.environments = {};
@@ -7,13 +5,19 @@ class EnvironmentConnectionPool {
 
   async addConnection(environmentId, connection) {
     if (!(environmentId in this.environments)) {
-      this.environments[environmentId] = [];
+      this.environments[environmentId] = new Map();
     }
-    this.environments[environmentId].push(connection);
+    this.environments[environmentId].set(connection.socket, connection);
+  }
+
+  async removeConnection(environmentId, socket) {
+    if (environmentId in this.environments) {
+      this.environments[environmentId].delete(socket);
+    }
   }
 
   async getConnections(environmentId) {
-    return this.environments[environmentId];
+    return this.environments[environmentId].values();
   }
 }
 

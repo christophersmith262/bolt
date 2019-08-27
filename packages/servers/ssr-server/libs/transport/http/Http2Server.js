@@ -8,14 +8,11 @@ class Http2Server extends HttpServer {
     this.curlOpts += ' --http2-prior-knowledge';
   }
 
-  async startEventLoop(routes, executor) {
+  async startEventLoop(router) {
     this._server.on('stream', async (stream, headers) => {
-      const route = await this._getRoute(routes, headers[':path']);
+      const routeId = await this._getRouteId(headers[':path']);
 
-      if (!route) {
-        stream.respond({ ':status': 404 });
-        stream.end();
-      } else if (headers[':method'].toLowerCase() !== 'post') {
+      if (headers[':method'].toLowerCase() !== 'post') {
         stream.respond({ ':status': 405 });
         stream.end();
       } else {
@@ -23,9 +20,12 @@ class Http2Server extends HttpServer {
         stream.on('data', chunk => {
           chunks.push(chunk);
         });
+
         stream.on('end', async () => {
+          const type = headers['content-type'];
+
           try {
-            const rendered = await executor.render(route, chunks.join());
+            const rendered = await router.execute(routeId, type, chunks.join());
 
             stream.respond({
               ':status': 200,
@@ -34,19 +34,25 @@ class Http2Server extends HttpServer {
 
             stream.end(rendered + "\n");
           } catch (e) {
-            stream.respond({
-              ':status': 500,
-              'content-type': 'application/json',
-            });
+            if (e.constructor.name == 'MissingRouteError') {
+              stream.respond({ ':status': 404 });
+              stream.end();
+            }
+            else {
+              stream.respond({
+                ':status': 500,
+                'content-type': 'application/json',
+              });
 
-            stream.end(JSON.stringify({
-              error: {
-                name: e.name,
-                message: e.message,
-                fileName: e.fileName,
-                lineNumber: e.lineNumber,
-              },
-            }) + "\n");
+              stream.end(JSON.stringify({
+                error: {
+                  name: e.name,
+                  message: e.message,
+                  fileName: e.fileName,
+                  lineNumber: e.lineNumber,
+                },
+              }) + "\n");
+            }
           }
         });
       }

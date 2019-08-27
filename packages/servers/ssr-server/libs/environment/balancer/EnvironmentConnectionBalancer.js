@@ -1,5 +1,6 @@
 class EnvironmentConnectionBalancer {
   async select(environments) {
+    environments = Array.from(environments);
     const keys = Object.keys(environments);
 
     if (!keys.length) {

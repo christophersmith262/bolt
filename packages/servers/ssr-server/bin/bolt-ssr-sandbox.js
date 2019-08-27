@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 
-const path = require('path');
-const ipc = require('node-ipc');
 const program = require('../libs/process/program');
+const sandbox = require('../libs/process/sandbox');
 const { loadConfig } = require('../libs/load-config');
-const { SandboxProcess, startSandbox } = require('../libs/process');
 
 program
   .option(
@@ -26,5 +24,5 @@ loadConfig(program).then(async config => {
     environmentId = program.environmentId,
     environmentDef = config.environments[environmentId];
 
-  await startSandbox(config, program.sandboxId, serverIds, environmentDef);
+  await sandbox.start(config, program.sandboxId, serverIds, environmentDef);
 });

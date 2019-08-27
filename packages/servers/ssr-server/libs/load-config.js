@@ -17,6 +17,7 @@ async function loadConfig(overrides) {
     console.log('');
     process.exit();
   }
+
   let config = require(configFilePath),
     errors = 0;
 
@@ -34,6 +35,13 @@ async function loadConfig(overrides) {
   if (!config.routes) {
     config.routes = {};
   }
+
+  if (!config.router) {
+    config.router = require('./request/router')();
+  }
+
+  config.admin = config.admin || {};
+  config.admin.port = config.admin.port || 3000
 
   for (let i in config.environments) {
     const environmentDef = config.environments[i];

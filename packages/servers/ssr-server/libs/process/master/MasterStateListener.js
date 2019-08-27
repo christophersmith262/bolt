@@ -1,8 +1,7 @@
-const { Listener } = require('./Listener');
-const messages = require('../ipc/messages');
+const ipc = require('../ipc');
 const server = require('../server');
 
-class MasterStateListener extends Listener {
+class MasterStateListener extends ipc.Listener {
   constructor(config) {
     super(config);
     this._readyToSpawn = [];
@@ -13,18 +12,18 @@ class MasterStateListener extends Listener {
     this._readyToServe.push(new Promise(acceptingConnections => {
       this._readyToSpawn.push(new Promise(acceptingRegistrations => {
         subject.on('message', async message => {
-          if (message.type == messages.types['SERVER_START']) {
+          if (message.type == ipc.message.types['SERVER_START']) {
             await server.start(this.config, [subject], 1);
           }
-          else if (message.type == messages.types['SERVER_AWAITING_ENVIRONMENTS'] && message.server == subject.id) {
+          else if (message.type == ipc.message.types['SERVER_AWAITING_ENVIRONMENTS'] && message.server == subject.id) {
             acceptingRegistrations();
           }
-          else if (message.type == messages.types['SERVER_READY'] && message.server == subject.id) {
+          else if (message.type == ipc.message.types['SERVER_READY'] && message.server == subject.id) {
             acceptingConnections();
           }
-          else if (message.type == messages.types['SERVER_PROCESS_READY'] && message.server == subject.id) {
+          else if (message.type == ipc.message.types['SERVER_PROCESS_READY'] && message.server == subject.id) {
             subject.send({
-              type: messages.types['SERVER_START'],
+              type: ipc.message.types['SERVER_START'],
             });
           }
         });

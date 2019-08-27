@@ -50,15 +50,11 @@ class HttpServer extends Server {
     this._server = this.http.createServer(this.options);
   }
 
-  async startEventLoop(routes, executor) {
+  async startEventLoop(router) {
     this._server.on('request', async (req, res) => {
-      const route = await this._getRoute(routes, req.url);
+      const routeId = await this._getRouteId(req.url);
 
-      if (!route) {
-        res.writeHead(404);
-        res.end();
-      }
-      else if (req.method.toLowerCase() !== 'post') {
+      if (req.method.toLowerCase() !== 'post') {
         res.writeHead(405);
         res.end();
       }
@@ -72,27 +68,33 @@ class HttpServer extends Server {
           const type = req.headers['content-type'];
 
           try {
-            const rendered = await executor.execute(route, type, chunks.join());
+            const rendered = await router.execute(routeId, type, chunks.join());
             res.writeHead(200, { 'content-type': 'text/html' });
             res.end(rendered + "\n");
           } catch (e) {
-            res.writeHead(500, { 'content-type': 'application/json' });
-            res.end(JSON.stringify({
-              error: {
-                name: e.name,
-                message: e.message,
-                fileName: e.fileName,
-                lineNumber: e.lineNumber,
-              },
-            }) + "\n");
+            if (e.constructor.name == 'MissingRouteError') {
+              res.writeHead(404);
+              res.end();
+            }
+            else {
+              res.writeHead(500, { 'content-type': 'application/json' });
+              res.end(JSON.stringify({
+                error: {
+                  name: e.name,
+                  message: e.message,
+                  fileName: e.fileName,
+                  lineNumber: e.lineNumber,
+                },
+              }) + "\n");
+            }
           }
         });
       }
     });
   }
 
-  async start(routes, executor) {
-    this.startEventLoop(routes, executor);
+  async start(routes, router) {
+    this.startEventLoop(routes, router);
     this._server.listen(this.port);
   }
 
@@ -107,14 +109,12 @@ curl ${this.protocol}://localhost${port} -v${this.curlOpts} -X POST -d "<bolt-bu
     `;
   }
 
-  async _getRoute(routes, requestPath) {
+  async _getRouteId(requestPath) {
     if (requestPath == '/') {
-      return routes['default'];
+      return 'default';
     }
     else {
-      for (var name in routes) {
-        return routes[name];
-      }
+      return requestPath.replace(/^\/+/, '');
     }
   }
 

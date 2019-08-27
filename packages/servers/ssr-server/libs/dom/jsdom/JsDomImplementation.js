@@ -10,7 +10,6 @@ const { FilesystemResourceLoader } = require('./FilesystemResourceLoader');
 class JsDomImplementation extends DomImplementation {
   constructor(resourceLoader) {
     super();
-    this.dom = null;
     this.resourceLoader = resourceLoader || new FilesystemResourceLoader();
   }
 
@@ -40,14 +39,11 @@ class JsDomImplementation extends DomImplementation {
     });
 
     // add these to our JSOM instance to messing with the global Node.js env
-    dom.window.eval(`${mutationObserverShim}`);
-    dom.window.eval(`${customElementShim}`);
+    const window = dom.window;
+    //window.eval(`${mutationObserverShim}`);
+    window.eval(`${customElementShim}`);
 
-    this.dom = dom;
-  }
-
-  async getWindow() {
-    return this.dom.window;
+    this.window = window;
   }
 }
 
